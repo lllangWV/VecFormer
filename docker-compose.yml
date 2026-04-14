@@ -1,0 +1,52 @@
+services:
+  glm-ocr-vllm:
+    build:
+      context: .
+      args:
+        PIXI_ENV: vllm
+    ports:
+      - "8080:8080"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: >-
+      bash -c "source /shell-hook.sh && exec vllm serve zai-org/GLM-OCR
+      --served-model-name glm-ocr
+      --port 8080
+      --allowed-local-media-path /
+      --gpu-memory-utilization 0.25
+      --max-model-len 32768
+      --speculative-config '{\"method\":\"mtp\",\"num_speculative_tokens\":1}'"
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+
+  qwen3-vllm:
+    build:
+      context: .
+      args:
+        PIXI_ENV: vllm
+    ports:
+      - "8081:8081"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: >-
+      bash -c "source /shell-hook.sh && exec vllm serve Qwen/Qwen3.5-9B
+      --served-model-name qwen3
+      --port 8081
+      --gpu-memory-utilization 0.25
+      --max-model-len 16384
+      --quantization fp8"
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+
+volumes:
+  hf-cache:
