@@ -1,0 +1,26 @@
+#!/bin/bash
+# User data for embd: writes compose file and starts vLLM embedding services.
+
+cat > /var/lib/cloud/scripts/per-boot/start-embd.sh << 'BOOTSCRIPT'
+#!/bin/bash
+set -euo pipefail
+
+DEPLOY_DIR="/opt/ec2-serve"
+
+# ── Start services ──────────────────────────────────────────────
+cd "$DEPLOY_DIR"
+docker compose pull
+docker compose up -d --remove-orphans
+
+BOOTSCRIPT
+
+chmod +x /var/lib/cloud/scripts/per-boot/start-embd.sh
+
+# Write docker-compose.yml
+mkdir -p /opt/ec2-serve
+cat > /opt/ec2-serve/docker-compose.yml << 'COMPOSEFILE'
+${compose_content}
+COMPOSEFILE
+
+# Run immediately on first boot
+/var/lib/cloud/scripts/per-boot/start-embd.sh

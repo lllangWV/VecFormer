@@ -1,0 +1,85 @@
+services:
+  qwen3-vl-embd-8b:
+    image: vllm/vllm-openai:cu130-nightly
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8081/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 60
+      start_period: 120s
+    command:
+      - RamManavalan/Qwen3-VL-Embedding-8B-FP8
+      - --served-model-name
+      - qwen3-vl-embd-8b
+      - --port
+      - "8081"
+      - --runner
+      - pooling
+      - --trust-remote-code
+      - --gpu-memory-utilization
+      - "${vllm_gpu_memory_utilization}"
+      - --max-model-len
+      - "8192"
+      - --limit-mm-per-prompt
+      - '{"image":1}'
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: "${aws_region}"
+        awslogs-group: "/ec2-serve/embd/qwen3-vl-8b"
+        awslogs-create-group: "true"
+
+  qwen3-vl-embd-2b:
+    image: vllm/vllm-openai:cu130-nightly
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    depends_on:
+      qwen3-vl-embd-8b:
+        condition: service_healthy
+    command:
+      - Qwen/Qwen3-VL-Embedding-2B
+      - --served-model-name
+      - qwen3-vl-embd-2b
+      - --port
+      - "8082"
+      - --runner
+      - pooling
+      - --trust-remote-code
+      - --gpu-memory-utilization
+      - "0.15"
+      - --max-model-len
+      - "8192"
+      - --limit-mm-per-prompt
+      - '{"image":1}'
+
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: "${aws_region}"
+        awslogs-group: "/ec2-serve/embd/qwen3-vl-2b"
+        awslogs-create-group: "true"
+
+volumes:
+  hf-cache:
