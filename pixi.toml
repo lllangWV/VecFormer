@@ -1,0 +1,61 @@
+[workspace]
+name = "vecformer"
+version = "0.1.0"
+description = "VecFormer: Vector-based Panoptic Symbol Spotting for CAD Drawings"
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+python = ">=3.11,<3.13"
+
+# Core ML
+torchvision = "*"
+timm = "*"
+
+# Transformers ecosystem
+transformers = "*"
+accelerate = "*"
+datasets = "*"
+evaluate = "*"
+
+# Data processing
+numpy = "*"
+scipy = "*"
+svgpathtools = "*"
+
+# Configuration & utilities
+addict = "*"
+einops = "*"
+rich = "*"
+multiprocess = "*"
+
+# Logging
+tensorboard = "*"
+tensorboardx = "*"
+
+# Utilities
+gdown = "*"
+
+[feature.gpu.system-requirements]
+cuda = "12"
+
+[feature.gpu.dependencies]
+cuda-version = "12.9.*"
+pytorch-gpu = "2.8.*"
+# GPU-only packages
+flash-attn = "*"
+pytorch_scatter = "*"
+
+[feature.gpu.pypi-dependencies]
+# spconv is only available on PyPI; cu126 has Python 3.12+ wheels and is compatible with cuda 12.9 runtime
+spconv-cu126 = ">=2.3,<3"
+
+[feature.cpu.dependencies]
+pytorch-cpu = "2.8.*"
+
+[activation.env]
+PYTHONPATH = "$PIXI_PROJECT_ROOT:$PYTHONPATH"
+
+[environments]
+default = ["gpu"]
+cpu = {features = ["cpu"], no-default-feature = false}
