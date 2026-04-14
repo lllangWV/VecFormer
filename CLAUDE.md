@@ -1,0 +1,89 @@
+# CLAUDE.md
+
+IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning for any pixi tasks.
+
+IMPORTANT: USE `pixi run` for all bash commands. Never run python/pytest/ruff/basedpyright directly.
+
+- You must exclude these folder types `**/**/__pycache__`, `docs/figures`, `docs/meeting_notes`, `docs/research_notes`, `.pixi`, `.ruff_cache` from any tool call, such as read, write, glob, find
+
+## Specifications
+
+Before implementing any feature, consult specs in `specs/README.md`.
+
+- For typing, type annotations, and basedpyright issues, consult `specs/typing-standards.md`.
+- Assume NOT implemented. Specs describe planned features.
+- Check the codebase first. Specs describe intent; code describes reality.
+- Use specs as guidance for types, patterns, and architecture.
+
+
+## Commands
+
+All commands go through `pixi run`. This ensures isolated environments.
+
+### Linting & Formatting
+
+- Lint all src: `pixi run -e dev lint-src`
+- Lint all tests: `pixi run -e dev lint-tests`
+- Lint both: `pixi run -e dev lint`
+- Lint specific file: `pixi run -e dev ruff-lint <file_path>` (add `--src` or `--tests` for respective config, `--verbose`/`-v` for full output)
+- Format check specific file: `pixi run -e dev ruff-format <file_path>` (same flags as above)
+
+### Type Checking
+
+- If you do anything with typechecking, read specs/typing-standards.md
+- All files: `pixi run -e dev typecheck`
+- Specific file: `pixi run -e dev typecheck <file_path>` (add `--verbose`/`-v` for full output)
+
+### Testing
+
+- All tests: `pixi run -e dev test`
+- Specific test pattern: `pixi run -e dev test <test_pattern>` (add `--verbose`/`-v` for full output)
+- Test GPU/torch: `pixi run test-torch-gpu`
+
+### Other
+
+- Full check (typecheck + test + lint): `pixi run -e dev check`
+- CI check (CPU-only): `pixi run -e ci ci-check`
+- Format TOML: `pixi run -e dev toml-format`
+- Format markdown/json: `pixi run -e dev dprint-fmt`
+
+
+## Pixi Environments
+
+| Environment | Features | Use for |
+|-------------|----------|---------|
+| (default) | ykkcadparse, gpu, dev, pytest | General development |
+| `dev` | ykkcadparse, gpu, lint, pytest, dev | Development with linting (primary) |
+| `lint` | ykkcadparse, gpu, lint, pytest, dev | Same as dev |
+| `ci` | ykkcadparse, cpu, lint, pytest, dev | CI (CPU-only, no GPU) |
+| `docs` | ykkcadparse, gpu, docs | Changelog generation |
+
+
+## Project Structure
+
+- Package name: `ykkcadparse`
+- Source: `src/ykkcadparse/` (vision modules, utils)
+- Tests: `tests/`
+- Examples: `examples/scripts/`, `examples/jupyter/`
+- Config files: `.config/` (pytest, ruff, pyright, dprint, etc.)
+
+
+## A Note To The Agent
+
+Keep @CLAUDE.md up to date with build/run/test instructions and file discovery learnings to optimize token usage/speed for the dev loop using a subagent.
+
+<!-- AGENTS-MD-EMBED-START:pixi -->
+[Pixi Docs Index]|root: /home/lllang/.cache/agdex/pixi|IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning for any pixi tasks. Pixi is a cross-platform package manager for conda environments.|If docs missing, run: npx agdex --provider pixi --output CLAUDE.md|.:{first_workspace.md,getting_started.md,installation.md}|advanced:{channel_logic.md,explain_info_command.md,override.md,pixi_shell.md,shebang.md}|build:{advanced_cpp.md,backends.md,cpp.md,dependency_types.md,dev.md,getting_started.md,package_source.md,python.md,ros.md,variants.md,workspace.md}|build/backends:{pixi-build-cmake.md,pixi-build-mojo.md,pixi-build-python.md,pixi-build-rattler-build.md,pixi-build-ros.md,pixi-build-rust.md}|build/key_concepts:{compilers.md}|concepts:{conda_pypi.md,package_specifications.md}|deployment:{authentication.md,container.md,pixi_pack.md,s3.md}|global_tools:{introduction.md,manifest.md,trampolines.md}|integration/ci:{github_actions.md,updates_github_actions.md}|integration/editor:{jetbrains.md,jupyterlab.md,r_studio.md,vscode.md,zed.md}|integration/extensions:{introduction.md,pixi_diff.md,pixi_inject.md,pixi_install_to_prefix.md}|integration/third_party:{conda_deny.md,direnv.md,starship.md}|misc:{Community.md,FAQ.md,packaging.md,vision.md}|python:{pyproject_toml.md,pytorch.md,tutorial.md}|reference:{environment_variables.md,pixi_configuration.md,pixi_manifest.md}|reference/cli:{pixi.md}|reference/cli/pixi:{add.md,auth.md,build.md,clean.md,completion.md,config.md,exec.md,global.md,import.md,info.md,init.md,install.md,list.md,lock.md,reinstall.md,remove.md,run.md,search.md,self-update.md,shell-hook.md,shell.md,task.md,tree.md,update.md,upgrade.md,upload.md,workspace.md}|reference/cli/pixi/auth:{login.md,logout.md}|reference/cli/pixi/clean:{cache.md}|reference/cli/pixi/config:{append.md,edit.md,list.md,prepend.md,set.md,unset.md}|reference/cli/pixi/global:{add.md,edit.md,expose.md,install.md,list.md,remove.md,shortcut.md,sync.md,tree.md,uninstall.md,update.md,upgrade-all.md,upgrade.md}|reference/cli/pixi/global/expose:{add.md,remove.md}|reference/cli/pixi/global/shortcut:{add.md,remove.md}|reference/cli/pixi/task:{add.md,alias.md,list.md,remove.md}|reference/cli/pixi/upload:{anaconda.md,artifactory.md,conda-forge.md,prefix.md,quetz.md,s3.md}|reference/cli/pixi/workspace:{channel.md,description.md,environment.md,export.md,feature.md,name.md,platform.md,requires-pixi.md,system-requirements.md,version.md}|reference/cli/pixi/workspace/channel:{add.md,list.md,remove.md}|reference/cli/pixi/workspace/description:{get.md,set.md}|reference/cli/pixi/workspace/environment:{add.md,list.md,remove.md}|reference/cli/pixi/workspace/export:{conda-environment.md,conda-explicit-spec.md}|reference/cli/pixi/workspace/feature:{list.md,remove.md}|reference/cli/pixi/workspace/name:{get.md,set.md}|reference/cli/pixi/workspace/platform:{add.md,list.md,remove.md}|reference/cli/pixi/workspace/requires-pixi:{get.md,set.md,unset.md,verify.md}|reference/cli/pixi/workspace/system-requirements:{add.md,list.md}|reference/cli/pixi/workspace/version:{get.md,major.md,minor.md,patch.md,set.md}|switching_from:{conda.md,poetry.md}|tutorials:{import.md,multi_environment.md,ros2.md,rust.md}|workspace:{advanced_tasks.md,environment.md,lockfile.md,multi_environment.md,multi_platform_configuration.md,system_requirements.md}
+<!-- AGENTS-MD-EMBED-END:pixi -->
+
+<!-- AGENTS-MD-EMBED-START:rattler-build -->
+[rattler-build Docs Index]|root: /home/lllang/.cache/agdex/rattler-build|IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning for any rattler-build tasks. rattler-build is a tool for building conda packages from recipe.yaml files.|If docs missing, run: npx agdex --provider rattler-build --output CLAUDE.md|.:{authentication_and_upload.md,automatic_linting.md,build_options.md,build_script.md,bump_recipe.md,compilers.md,conda_forge.md,config.md,converting_from_conda_build.md,create_patch.md,debugging_builds.md,experimental_features.md,getting_started.md,highlevel.md,internals.md,multiple_output_cache.md,package_spec.md,publish.md,rebuild.md,recipe_generation.md,sandbox.md,selectors.md,sigstore.md,special_files.md,system_integration.md,testing.md,tips_and_tricks.md,tui.md,understanding_terminal_output.md,variants.md,windows_quirks.md}|reference:{cli.md,jinja.md,python_bindings.md,recipe_file.md}|tutorials:{cpp.md,go.md,javascript.md,perl.md,python.md,r.md,repackaging.md,rust.md}
+<!-- AGENTS-MD-EMBED-END:rattler-build -->
+
+<!-- AGENTS-MD-EMBED-START:conda-forge -->
+[conda-forge Docs Index]|root: /home/lllang/.cache/agdex/conda-forge|IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning for any conda-forge tasks. conda-forge is a community-led collection of recipes, build infrastructure, and packages for conda.|If docs missing, run: npx agdex --provider conda-forge --output CLAUDE.md|.:{diataxis.md,glossary.md}|how-to:{advanced.mdx,basics.mdx,emergencies.mdx}|how-to/advanced:{cross-compilation.mdx,enable-archs.md,several-versions.md,talk-to-the-bots.md}|how-to/basics:{fork-sync.md,populate-dependencies.mdx,rerender.md}|how-to/emergencies:{fix-a-security-vulnerability.md}|maintainer:{adding_pkgs.mdx,conda_forge_yml.mdx,guidelines.md,infrastructure.mdx,knowledge_base.mdx,maintainer_faq.md,pinning_deps.md,updating_pkgs.md}|maintainer/example_recipes:{go.md,pure-python.md,rust.md}|maintainer/understanding_conda_forge:{compilation-concepts.md,cross-compilation.md,feedstocks.md,life_cycle.md,staged_recipes.md}|tutorials:{first-recipe.md}|user:{ci-skeleton.md,contributing.mdx,faq.md,how_to_get_help.md,introduction.md,talks.md,tipsandtricks.md,transitioning_from_defaults.md}
+<!-- AGENTS-MD-EMBED-END:conda-forge -->
+
+<!-- AGENTS-MD-EMBED-START:cuda-feedstock -->
+[CUDA Feedstock Docs Index]|root: /home/lllang/.cache/agdex/cuda-feedstock|This should be used when building and running CUDA packages with rattler-build, conda-forge, pixi.|If docs missing, run: npx agdex --provider cuda-feedstock --output CLAUDE.md|.:{meta.yaml,README.md}|doc:{end_user_compile_guide.md,end_user_run_guide.md,maintainer_guide.md,recipe_guide.md}
+<!-- AGENTS-MD-EMBED-END:cuda-feedstock -->
