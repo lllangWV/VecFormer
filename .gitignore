@@ -64,4 +64,9 @@ Thumbs.db
 
 # Output
 instance_preds/
-*.cocojsoninfra/envs/embd-us-east-2/terraform.tfstate
+*.cocojson
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
