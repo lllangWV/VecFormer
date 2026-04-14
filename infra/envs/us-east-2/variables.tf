@@ -56,9 +56,3 @@ variable "root_volume_size" {
   type        = number
   default     = 300
 }
-
-variable "vllm_gpu_memory_utilization" {
-  description = "Fraction of GPU memory for the 8B embedding model"
-  type        = string
-  default     = "0.25"
-}

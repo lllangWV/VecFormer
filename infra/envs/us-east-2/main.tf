@@ -1,7 +1,6 @@
-# infra/envs/embd-us-east-2
+# infra/envs/us-east-2
 #
-# Embedding service environment (us-east-2): vLLM pooling-mode
-# containers for multimodal embedding models on spot instances.
+# Simple GPU spot instance for SSH access (no Docker deployment).
 
 terraform {
   required_providers {
@@ -31,7 +30,7 @@ data "aws_subnets" "public" {
 
 resource "aws_key_pair" "this" {
   count      = var.ssh_public_key != "" ? 1 : 0
-  key_name   = "${var.project}-embd-key"
+  key_name   = "${var.project}-key"
   public_key = var.ssh_public_key
 }
 
@@ -40,28 +39,26 @@ locals {
   subnet_ids   = length(var.subnet_ids) > 0 ? var.subnet_ids : data.aws_subnets.public.ids
 }
 
-# ── Storage (IAM only — no ECR repos needed for public images) ─
+# ── Storage (IAM only — for SSM access) ────────────────────────
 
 module "storage" {
   source = "../../modules/storage"
 
   project        = var.project
-  environment    = "embd"
+  environment    = "gpu"
   ecr_repo_names = []
   model_bucket   = var.model_bucket
 }
 
-# ── Service (embd: security group + user data) ────────────────
+# ── Service (security group) ──────────────────────────────────
 
-module "embd" {
+module "service" {
   source = "../../services/embd"
 
-  project                     = var.project
-  environment                 = "embd"
-  aws_region                  = var.aws_region
-  vpc_id                      = var.vpc_id
-  allowed_cidrs               = var.allowed_cidrs
-  vllm_gpu_memory_utilization = var.vllm_gpu_memory_utilization
+  project       = var.project
+  environment   = "gpu"
+  vpc_id        = var.vpc_id
+  allowed_cidrs = var.allowed_cidrs
 }
 
 # ── Compute (EC2 + EIP) ───────────────────────────────────────
@@ -70,15 +67,15 @@ module "compute" {
   source = "../../modules/compute"
 
   project                   = var.project
-  environment               = "embd"
+  environment               = "gpu"
   instance_type             = var.instance_type
   subnet_ids                = var.subnet_ids
-  security_group_id         = module.embd.security_group_id
+  security_group_id         = module.service.security_group_id
   iam_instance_profile_name = module.storage.iam_instance_profile_name
   ssh_key_name              = local.ssh_key_name
   use_spot                  = true
   spot_max_price            = var.spot_max_price
   root_volume_size          = var.root_volume_size
-  user_data_base64          = module.embd.user_data_base64
-  extra_tags                = { service = "embd" }
+  user_data_base64          = module.service.user_data_base64
+  extra_tags                = { service = "gpu" }
 }
