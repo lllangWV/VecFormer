@@ -56,3 +56,15 @@ variable "root_volume_size" {
   type        = number
   default     = 300
 }
+
+variable "git_user_name" {
+  description = "Git user.name to configure on the instance"
+  type        = string
+  default     = ""
+}
+
+variable "git_user_email" {
+  description = "Git user.email to configure on the instance"
+  type        = string
+  default     = ""
+}

@@ -55,10 +55,13 @@ module "storage" {
 module "service" {
   source = "../../services/embd"
 
-  project       = var.project
-  environment   = "gpu"
-  vpc_id        = var.vpc_id
-  allowed_cidrs = var.allowed_cidrs
+  project        = var.project
+  environment    = "gpu"
+  vpc_id         = var.vpc_id
+  allowed_cidrs  = var.allowed_cidrs
+  ssh_public_key = var.ssh_public_key
+  git_user_name  = var.git_user_name
+  git_user_email = var.git_user_email
 }
 
 # ── Compute (EC2 + EIP) ───────────────────────────────────────

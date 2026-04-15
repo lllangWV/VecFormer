@@ -12,11 +12,51 @@ terraform {
 locals {
   prefix = "${var.project}-${var.environment}"
 
-  # Minimal user data - just ensure SSH is ready
+  # User data that sets up the instance for development
   user_data = <<-EOF
     #!/bin/bash
-    # Minimal bootstrap for SSH-only instance
-    echo "Instance ready for SSH access"
+    set -euo pipefail
+
+    export HOME=/home/ubuntu
+    export USER=ubuntu
+
+    # ── SSH public key ─────────────────────────────────────────────
+    %{if var.ssh_public_key != ""}
+    mkdir -p /home/ubuntu/.ssh
+    echo "${var.ssh_public_key}" >> /home/ubuntu/.ssh/authorized_keys
+    chown -R ubuntu:ubuntu /home/ubuntu/.ssh
+    chmod 700 /home/ubuntu/.ssh
+    chmod 600 /home/ubuntu/.ssh/authorized_keys
+    echo "SSH public key installed"
+    %{endif}
+
+    # ── Git configuration ──────────────────────────────────────────
+    %{if var.git_user_name != "" && var.git_user_email != ""}
+    sudo -u ubuntu git config --global user.name "${var.git_user_name}"
+    sudo -u ubuntu git config --global user.email "${var.git_user_email}"
+    sudo -u ubuntu git config --global init.defaultBranch main
+    sudo -u ubuntu git config --global pull.rebase false
+    echo "Git configured for ${var.git_user_name} <${var.git_user_email}>"
+    %{endif}
+
+    # ── System packages ────────────────────────────────────────────
+    echo "Installing system packages..."
+    apt-get update -qq
+    apt-get install -y nvtop
+    echo "System packages installed"
+
+    # ── Pixi ───────────────────────────────────────────────────────
+    echo "Installing Pixi..."
+    sudo -u ubuntu bash -c 'curl -fsSL https://pixi.sh/install.sh | bash'
+    echo "Pixi installed"
+
+    # ── Claude Code CLI ────────────────────────────────────────────
+    echo "Installing Claude Code CLI..."
+    sudo -u ubuntu bash -c 'curl -fsSL https://claude.ai/install.sh | bash'
+    echo "Claude Code CLI installed"
+
+    # ── Done ───────────────────────────────────────────────────────
+    echo "Instance setup complete"
   EOF
 }
 
