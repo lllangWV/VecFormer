@@ -23,12 +23,14 @@ class VecFormerTrainer(Trainer):
         # ----------- hack to log multiple loss ---------- #
         if self.custom_logs_is_training:
             if self.custom_logs:
-                stacked_values = torch.stack(list(self.custom_logs.values()))
-                gathered_values = self._nested_gather(stacked_values).view(dist.get_world_size(), -1)
-                mean_values = gathered_values.mean(dim=0)
-                for key, value in zip(self.custom_logs.keys(), mean_values):
-                    logs[key] = round(value.item() / (self.custom_logs_accumulated_step[key]), 4)
+                # Handle single GPU case directly, multi-GPU via all_reduce
+                for key, value in self.custom_logs.items():
+                    if dist.is_initialized() and dist.get_world_size() > 1:
+                        dist.all_reduce(value, op=dist.ReduceOp.SUM)
+                        value = value / dist.get_world_size()
+                    logs[key] = round(value.item() / self.custom_logs_accumulated_step[key], 4)
                 self.custom_logs.clear()
+                self.custom_logs_accumulated_step.clear()
         # ------------------------------------------------ #
         super().log(logs, start_time)
 
