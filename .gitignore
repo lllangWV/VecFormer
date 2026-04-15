@@ -71,3 +71,4 @@ instance_preds/
 *.tfstate
 *.tfstate.backup
 *terraform.lock.hcl
+*.lock.info
